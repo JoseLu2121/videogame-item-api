@@ -1,15 +1,7 @@
-# proyecto
+# videogame-item-api
 
-To install dependencies:
-
-```bash
-bun install
+To launch the API:
 ```
-
-To run:
-
-```bash
-bun run index.ts
+docker-compose up -d
 ```
-
-This project was created using `bun init` in bun v1.3.12. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+Search http://localhost:3000/ in your browser to check backend status and http://localhost:8081/ to check mongo express frontend.
