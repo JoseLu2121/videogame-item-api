@@ -1,8 +1,15 @@
 {
   "name": "elysia-mongo-js",
-  "module": "index.js",
+  "module": "src/index.js",
   "type": "module",
+  "scripts": {
+    "start": "bun run src/index.js",
+    "dev": "bun --watch run src/index.js",
+    "seed": "bun run src/run.seeders.js",
+    "docker:dev": "bun run seed && bun run dev"
+  },
   "dependencies": {
+    "@elysiajs/swagger": "latest",
     "elysia": "^1.1.20",
     "mongodb": "^6.8.0"
   }
