@@ -19,21 +19,28 @@ export class PokemonItemsSeeder {
 
       const json = await response.json();
 
-      const detailedItemsPromises = json.results.map(async (basicItem) => {
-        const detailResponse = await fetch(basicItem.url);
-        const itemData = await detailResponse.json();
+      const itemsArray = [];
+      const chunkSize = 20;
 
-        return {
-          game: "pokemon",
-          poke_id: itemData.id,
-          name: itemData.name,
-          cost: itemData.cost,
-          image_url: itemData.sprites.default,
-          category: itemData.category.name,
-        };
-      });
+      for (let i = 0; i < json.results.length; i += chunkSize) {
+        const chunk = json.results.slice(i, i + chunkSize);
+        const detailedItemsPromises = chunk.map(async (basicItem) => {
+          const detailResponse = await fetch(basicItem.url);
+          const itemData = await detailResponse.json();
 
-      const itemsArray = (await Promise.all(detailedItemsPromises)).filter(item => item.image_url != null);
+          return {
+            game: "pokemon",
+            poke_id: itemData.id,
+            name: itemData.name,
+            cost: itemData.cost,
+            image_url: itemData.sprites.default,
+            category: itemData.category.name,
+          };
+        });
+        
+        const chunkResults = await Promise.all(detailedItemsPromises);
+        itemsArray.push(...chunkResults.filter(item => item && item.image_url != null));
+      }
       
       allItems = allItems.concat(itemsArray);
       console.log(`      - Fetched batch... Total items so far: ${allItems.length}`);
