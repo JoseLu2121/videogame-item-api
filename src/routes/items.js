@@ -8,6 +8,15 @@ export const itemsRoutes = new Elysia({ prefix: "/items" })
     const items = await itemsCollection.find().toArray();
     return { success: true, data: items };
   })
+  .get("/games", async () => {
+    try {
+      const games = await itemsCollection.distinct("game");
+
+      return { success: true, data: games };
+    } catch (error) {
+      return { success: false, message: "Error fetching available games", error: error.message };
+    }
+  })
   .get("/game/:game", async ({ params }) => {
     try {
       const items = await itemsCollection.find({ game: params.game }).toArray();

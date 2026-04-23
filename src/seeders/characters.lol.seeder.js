@@ -13,7 +13,7 @@ export class LolCharactersSeeder {
       const champions = Object.values(json.data);
 
       const docs = champions.map(champ => ({
-        game: "league_of_legends",
+        game: "league-of-legends",
         external_id: champ.id,
         name: champ.name,
         title: champ.title,

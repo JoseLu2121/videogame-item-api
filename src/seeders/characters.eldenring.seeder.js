@@ -23,7 +23,7 @@ export class EldenRingCharactersSeeder {
         }
 
         const docs = json.data.map(npc => ({
-          game: "elden_ring",
+          game: "elden-ring",
           external_id: npc.id,
           name: npc.name,
           title: npc.role || "NPC",
