@@ -11,7 +11,7 @@ import { EldenRingCharactersSeeder } from "./seeders/characters.eldenring.seeder
 import { PokemonCharactersSeeder } from "./seeders/characters.pokeapi.seeder.js";
 import { Character } from "./models/character.model.js";
 
-import { VideogameSeeder } from "./seeders/videogame.seeder.example.js";
+import { VideogameSeeder } from "./seeders/videogame.seeder.js";
 import { Videogame } from "./models/videogame.model.js";
 
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/api";
