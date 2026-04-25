@@ -1,18 +1,18 @@
 import mongoose from "mongoose";
 import { SeederManager } from "./seeder.manager.js";
-import { ItemsSeeder } from "./seeders/item.seeder.example.js";
 import { LeagueItemsSeeder } from "./seeders/item.seeder.lol.js";
 import { EldenRingItemsSeeder } from "./seeders/item.seeder.eldenring.js";
 import { PokemonItemsSeeder } from "./seeders/item.seeder.pokeapi.js";
-import {MonsterHunterItemsSeeder} from "./seeders/item.seeder.monsterhunter.js";
+import { MonsterHunterItemsSeeder } from "./seeders/item.seeder.monsterhunter.js";
 import { XivapiSeeder } from "./seeders/itemseeder.xivapi.js";
 
-
-// Import character seeders (Mongoose)
 import { LolCharactersSeeder } from "./seeders/characters.lol.seeder.js";
 import { EldenRingCharactersSeeder } from "./seeders/characters.eldenring.seeder.js";
 import { PokemonCharactersSeeder } from "./seeders/characters.pokeapi.seeder.js";
 import { Character } from "./models/character.model.js";
+
+import { VideogameSeeder } from "./seeders/videogame.seeder.example.js";
+import { Videogame } from "./models/videogame.model.js";
 
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/api";
 
@@ -23,8 +23,6 @@ export async function runAllSeeders() {
   }
 
   const manager = new SeederManager(MONGO_URI);
-
-  manager.addSeeder(new ItemsSeeder());
   manager.addSeeder(new LeagueItemsSeeder());
   manager.addSeeder(new EldenRingItemsSeeder());
   manager.addSeeder(new PokemonItemsSeeder());
@@ -33,8 +31,7 @@ export async function runAllSeeders() {
   await manager.executeAll();
 
   console.log("Launching Mongoose character seeders in parallel...");
-  
-  // Clean characters collection before seeding
+
   await Character.deleteMany({});
 
   const charactersSeeders = [
@@ -42,11 +39,16 @@ export async function runAllSeeders() {
     new EldenRingCharactersSeeder().run(),
     new PokemonCharactersSeeder().run()
   ];
-
-  // Execute character seeders in parallel
   await Promise.all(charactersSeeders);
   
   console.log("Mongoose characters seeding completed successfully.");
+
+  await Videogame.deleteMany({});
+
+  const videogameSeeder = [new VideogameSeeder().run()];
+  await Promise.all(videogameSeeder)
+
+  console.log("Mongoose videogame seeding completed successfully.");
 }
 
 if (process.argv[1] && process.argv[1].includes("run.seeders.js")) {
