@@ -37,9 +37,17 @@ export const charactersRoutes = new Elysia({ prefix: "/characters" })
       };
     }
   })
-  .get("/game/:game", async ({ params }) => {
+  .get("/game/:game", async ({ params, query, set }) => {
     try {
-      const characters = await Character.find({ game: params.game });
+
+      const filter = {game: params.game}
+      if(query.tags) {
+        const tagsInRequest = query.tags.split(',');
+        filter.tags = { $all: tagsInRequest };
+      }
+
+      const characters = await Character.find(filter);
+
       return {
         success: true,
         count: characters.length,
@@ -85,4 +93,23 @@ export const charactersRoutes = new Elysia({ prefix: "/characters" })
           error: error.message,
         };
       }})
+    .get("game/:game/tags", async({ params, set}) => {
+      try{
 
+        const tags = await Character.aggregate([
+          { $match: { game: params.game } }, 
+        
+          { $unwind: '$tags' },
+        
+          { $group: { _id: '$tags' } },
+        
+          { $sort: { _id: 1 } }
+        ]);
+
+        return tags.map(t => t._id);
+      
+    }catch(error){
+      set.status = 500
+      return { error: 'Error obtaining tags'}
+    }
+  })
