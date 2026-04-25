@@ -26,9 +26,6 @@ export class VideogameSeeder {
 
     console.log(`   -> Fetched ${videogames.length} games from IGDB.`);
 
-    console.log(videogames[8].language_supports)
-    console.log(languageMap);
-
     const docs = videogames.map((videogame) => ({
       igdb_id: videogame.id,
       name: videogame.name,
