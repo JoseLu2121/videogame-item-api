@@ -4,6 +4,7 @@ import { itemsRoutes } from "./routes/items.js";
 import { seedRoutes } from "./routes/seed.js";
 import { charactersRoutes } from "./routes/characters.js";
 import { cors } from "@elysiajs/cors";
+import { authRoutes } from "./routes/auth.js";
 
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/api";
 
@@ -13,6 +14,7 @@ mongoose.connect(MONGO_URI)
 
 const app = new Elysia().use(cors())
   .get("/", () => "Bun server working!")  
+  .use(authRoutes)
   .use(itemsRoutes)
   .use(charactersRoutes)
   .use(seedRoutes)
