@@ -1,62 +1,80 @@
-import { Elysia, t } from 'elysia';
-import { jwt } from '@elysiajs/jwt';
-import { User } from '../models/user.model';
+import { jwt } from "@elysiajs/jwt";
+import { Elysia, t } from "elysia";
+import { User } from "../models/user.model";
 
-export const authRoutes = new Elysia({ prefix: '/auth' }) 
-  .use(
-    jwt({
-      name: 'jwt',
-      secret: Bun.env.JWT_SECRET
-    })
-  )
-  .get('', () => {
-    return { mensaje: 'Auth working correctly' }
-  })
-  .post('/register', async ({ body, set }) => {
-    const { email, password } = body;
+export const authRoutes = new Elysia({ prefix: "/auth" })
+	.use(
+		jwt({
+			name: "jwt",
+			secret: Bun.env.JWT_SECRET,
+		}),
+	)
+	.get("", () => {
+		return { message: "Auth working correctly" };
+	}, {
+		detail: {
+			summary: "Health check",
+			description: "Returns a message if the auth routes are working correctly",
+			tags: ["Auth"],
+		}
+	})
+	.post(
+		"/register",
+		async ({ body, set }) => {
+			const { email, password } = body;
 
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      set.status = 400;
-      return { error: 'Email currently in database.' };
-    }
+			const userExists = await User.findOne({ email });
+			if (userExists) {
+				set.status = 400;
+				return { error: "Email currently in database." };
+			}
 
-    const hashedPassword = await Bun.password.hash(password);
+			const hashedPassword = await Bun.password.hash(password);
+			const newUser = await User.create({ email, password: hashedPassword });
 
-    const newUser = await User.create({
-      email,
-      password: hashedPassword
-    });
+			return { message: "User created", id: newUser._id };
+		},
+		{
+			body: t.Object({
+				email: t.String({ description: "Desired user email" }),
+				password: t.String({ description: "Desired user password" }),
+			}, { description: "Expects a user email and password" }),
+			detail: {
+				summary: "Register",
+				description: "Registers a new user",
+				tags: ["Auth"],
+			},
+		}
+	)
+	.post(
+		"/login",
+		async ({ body, jwt, set }) => {
+			const { email, password } = body;
 
-    return { menssage: 'User created', id: newUser._id };
-  }, {
-    body: t.Object({
-      email: t.String(),
-      password: t.String()
-    })
-  })
+			const user = await User.findOne({ email });
+			if (!user) {
+				set.status = 401;
+				return { error: "Invalid credentials" };
+			}
 
-  .post('/login', async ({ body, jwt, set }) => {
-    const { email, password } = body;
+			const isValid = await Bun.password.verify(password, user.password);
+			if (!isValid) {
+				set.status = 401;
+				return { error: "Invalid credentials" };
+			}
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      set.status = 401;
-      return { error: 'Invalid credentials' };
-    }
-
-    const isValid = await Bun.password.verify(password, user.password);
-    if (!isValid) {
-      set.status = 401;
-      return { error: 'Invalid credentials' };
-    }
-
-    const token = await jwt.sign({ id: user._id });
-
-    return { message: 'Login successfull', token };
-  }, {
-    body: t.Object({
-      email: t.String(),
-      password: t.String()
-    })
-  });
+			const token = await jwt.sign({ id: user._id });
+			return { message: "Login successful", token };
+		},
+		{
+			body: t.Object({
+				email: t.String({ description: "User email" }),
+				password: t.String({ description: "User password" }),
+			}, { description: "Expects a previously registered user email and password" }),
+			detail: {
+				summary: "Login",
+				description: "Logins a user",
+				tags: ["Auth"],
+			},
+		}
+	);

@@ -1,38 +1,41 @@
 export class LeagueItemsSeeder {
-  constructor() {
-    this.name = "League of Legends Items";
-  }
+	constructor() {
+		this.name = "League of Legends Items";
+	}
 
-  async run(db) {
-    const collection = db.collection("items");
+	async run(db) {
+		const collection = db.collection("items");
 
-    console.log("   -> Loading league of legends items...");
-    const url = "https://ddragon.leagueoflegends.com/cdn/14.2.1/data/en_US/item.json";
-    const response = await fetch(url);
+		console.log("   -> Loading league of legends items...");
+		const url =
+			"https://ddragon.leagueoflegends.com/cdn/14.2.1/data/en_US/item.json";
+		const response = await fetch(url);
 
-    if (!response.ok) {
-      throw new Error(`Error loading League of Legends API: ${response.statusText}`);
-    }
+		if (!response.ok) {
+			throw new Error(
+				`Error loading League of Legends API: ${response.statusText}`,
+			);
+		}
 
-    const json = await response.json();
+		const json = await response.json();
 
-    const currentVersion = json.version;
+		const currentVersion = json.version;
 
-    const itemsArray = Object.entries(json.data)
-      .filter(([, itemData]) => {
-        const name = itemData?.name ?? "";
-        return !name.includes("<rarityLegendary>");
-      })
-      .map(([id, itemData]) => {
-        return {
-          game: "league-of-legends",
-          lol_id: id,
-          image_url: `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/item/${id}.png`,
-          ...itemData,
-        };
-      });
+		const itemsArray = Object.entries(json.data)
+			.filter(([, itemData]) => {
+				const name = itemData?.name ?? "";
+				return !name.includes("<rarityLegendary>");
+			})
+			.map(([id, itemData]) => {
+				return {
+					game: "league-of-legends",
+					lol_id: id,
+					image_url: `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/item/${id}.png`,
+					...itemData,
+				};
+			});
 
-    console.log(`   -> Saving ${itemsArray.length} items in MongoDB...`);
-    await collection.insertMany(itemsArray);
-  }
+		console.log(`   -> Saving ${itemsArray.length} items in MongoDB...`);
+		await collection.insertMany(itemsArray);
+	}
 }
