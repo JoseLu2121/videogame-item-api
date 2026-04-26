@@ -1,5 +1,6 @@
 import { openapi } from "@elysia/openapi";
 import { cors } from "@elysiajs/cors";
+import { serverTiming } from '@elysia/server-timing'
 import { Elysia } from "elysia";
 import mongoose from "mongoose";
 import { authRoutes } from "./routes/auth.js";
@@ -17,6 +18,7 @@ mongoose
 
 const app = new Elysia()
 	.use(cors())
+	.use(serverTiming())
 	.use(
 		openapi({
 			documentation: {

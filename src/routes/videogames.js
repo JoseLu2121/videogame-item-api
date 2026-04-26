@@ -4,9 +4,17 @@ import { Videogame } from "../models/videogame.model.js";
 export const videogameRoutes = new Elysia({ prefix: "/videogames" })
 	.get(
 		"",
-		async () => {
+		async ({ query }) => {
 			try {
-				const videogames = await Videogame.find({});
+				const { genres, themes, languages, keywords } = query;
+				const filter = {};
+				if (genres)    filter.genres    = { $in: genres.split(",").map(g => g.trim()) };
+				if (themes)    filter.themes    = { $in: themes.split(",").map(t => t.trim()) };
+				if (languages) filter.languages = { $in: languages.split(",").map(l => l.trim()) };
+				if (keywords)  filter.keywords  = { $in: keywords.split(",").map(k => k.trim()) };
+
+				const videogames = await Videogame.find(filter);
+
 				return {
 					count: videogames.length,
 					data: videogames,
@@ -16,9 +24,15 @@ export const videogameRoutes = new Elysia({ prefix: "/videogames" })
 			}
 		},
 		{
+			query: t.Object({
+				genres:    t.Optional(t.String()),
+				themes:    t.Optional(t.String()),
+				languages: t.Optional(t.String()),
+				keywords:  t.Optional(t.String()),
+			}, { description: "Optionally expects genres, themes, languages and keywords as query params"}),
 			detail: {
 				summary: "Get all videogames",
-				description: "Returns all videogames",
+				description: "Returns all videogames.",
 				tags: ["Videogames"],
 			},
 		},
