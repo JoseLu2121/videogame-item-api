@@ -1,8 +1,7 @@
-import { Elysia, t, NotFoundError } from "elysia";
 import { jwt } from "@elysiajs/jwt";
-import { Videogame } from "../models/videogame.model.js";
+import { Elysia, NotFoundError, t } from "elysia";
 import { Rating } from "../models/rating.model.js";
-
+import { Videogame } from "../models/videogame.model.js";
 
 export const videogameRoutes = new Elysia({ prefix: "/videogames" })
 	.use(
@@ -15,12 +14,17 @@ export const videogameRoutes = new Elysia({ prefix: "/videogames" })
 		"",
 		async ({ query }) => {
 			try {
-				const { genres, themes, languages, keywords } = query;
+				const { genres, themes, languages, keywords, name } = query;
 				const filter = {};
-				if (genres)    filter.genres    = { $in: genres.split(",").map(g => g.trim()) };
-				if (themes)    filter.themes    = { $in: themes.split(",").map(t => t.trim()) };
-				if (languages) filter.languages = { $in: languages.split(",").map(l => l.trim()) };
-				if (keywords)  filter.keywords  = { $in: keywords.split(",").map(k => k.trim()) };
+				if (name) filter.name = { $regex: name, $options: "i" };
+				if (genres)
+					filter.genres = { $in: genres.split(",").map((g) => g.trim()) };
+				if (themes)
+					filter.themes = { $in: themes.split(",").map((t) => t.trim()) };
+				if (languages)
+					filter.languages = { $in: languages.split(",").map((l) => l.trim()) };
+				if (keywords)
+					filter.keywords = { $in: keywords.split(",").map((k) => k.trim()) };
 
 				const videogames = await Videogame.find(filter);
 
@@ -33,12 +37,19 @@ export const videogameRoutes = new Elysia({ prefix: "/videogames" })
 			}
 		},
 		{
-			query: t.Object({
-				genres:    t.Optional(t.String()),
-				themes:    t.Optional(t.String()),
-				languages: t.Optional(t.String()),
-				keywords:  t.Optional(t.String()),
-			}, { description: "Optionally expects genres, themes, languages and keywords as query params"}),
+			query: t.Object(
+				{
+					name: t.Optional(t.String()),
+					genres: t.Optional(t.String()),
+					themes: t.Optional(t.String()),
+					languages: t.Optional(t.String()),
+					keywords: t.Optional(t.String()),
+				},
+				{
+					description:
+						"Optionally expects a name, genres, themes, languages and keywords as query params",
+				},
+			),
 			detail: {
 				summary: "Get all videogames",
 				description: "Returns all videogames.",
@@ -223,7 +234,7 @@ export const videogameRoutes = new Elysia({ prefix: "/videogames" })
 					first_release_date: { $exists: true, $lte: new Date() },
 				})
 					.sort({ first_release_date: -1 })
-					.limit(limit)
+					.limit(limit);
 
 				return { count: videogames.length, data: videogames };
 			} catch {
@@ -289,7 +300,7 @@ export const videogameRoutes = new Elysia({ prefix: "/videogames" })
 				description: "Returns a videogame by its unique database ID",
 				tags: ["Videogames"],
 			},
-		}
+		},
 	)
 	.get(
 		"/rating/:id",
@@ -328,10 +339,11 @@ export const videogameRoutes = new Elysia({ prefix: "/videogames" })
 			params: t.Object({ id: t.String() }),
 			detail: {
 				summary: "Get user rating for a videogame",
-				description: "Returns the rating given by the authenticated user for a specific videogame, or null if not rated",
+				description:
+					"Returns the rating given by the authenticated user for a specific videogame, or null if not rated",
 				tags: ["Videogames"],
 			},
-		}
+		},
 	)
 	.post(
 		"/rating/:id",
@@ -384,7 +396,10 @@ export const videogameRoutes = new Elysia({ prefix: "/videogames" })
 					await videogame.save();
 				}
 
-				return { message: "Rating added/updated successfully", data: savedRating };
+				return {
+					message: "Rating added/updated successfully",
+					data: savedRating,
+				};
 			} catch (error) {
 				set.status = 500;
 				return { error: "Error adding rating" };
@@ -398,5 +413,5 @@ export const videogameRoutes = new Elysia({ prefix: "/videogames" })
 				description: "Allows an authenticated user to rate a videogame",
 				tags: ["Videogames"],
 			},
-		}
+		},
 	);

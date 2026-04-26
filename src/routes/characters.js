@@ -126,7 +126,9 @@ export const charactersRoutes = new Elysia({ prefix: "/characters" })
 				};
 
 				if (query.tags) {
-					filter.tags = { $all: query.tags.split(",").map((tag) => tag.toLowerCase()) };
+					filter.tags = {
+						$all: query.tags.split(",").map((tag) => tag.toLowerCase()),
+					};
 				}
 
 				const characters = await Character.find(filter).lean();
@@ -136,13 +138,19 @@ export const charactersRoutes = new Elysia({ prefix: "/characters" })
 			}
 		},
 		{
-			params: t.Object({
-				game: t.String(),
-				name: t.String(),
-			}, { description: "Expects a game and a name" }),
-			query: t.Object({
-				tags: t.Optional(t.String()),
-			}, { description: "Optionally, character tags can be added to the query" }),
+			params: t.Object(
+				{
+					game: t.String(),
+					name: t.String(),
+				},
+				{ description: "Expects a game and a name" },
+			),
+			query: t.Object(
+				{
+					tags: t.Optional(t.String()),
+				},
+				{ description: "Optionally, character tags can be added to the query" },
+			),
 			detail: {
 				summary: "Get character by game and name",
 				description: "Returns a character by game and name",

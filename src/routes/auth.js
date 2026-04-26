@@ -1,7 +1,7 @@
 import { jwt } from "@elysiajs/jwt";
 import { Elysia, t } from "elysia";
-import { User } from "../models/user.model.js";
 import { Rating } from "../models/rating.model.js";
+import { User } from "../models/user.model.js";
 
 export const authRoutes = new Elysia({ prefix: "/auth" })
 	.use(
@@ -132,8 +132,9 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 		{
 			detail: {
 				summary: "Get user profile and ratings",
-				description: "Returns the authenticated user's details and all their rated videogames",
+				description:
+					"Returns the authenticated user's details and all their rated videogames",
 				tags: ["Auth"],
 			},
-		}
+		},
 	);
