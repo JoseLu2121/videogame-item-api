@@ -39,7 +39,7 @@ const app = new Elysia()
 	)
 	.onError(({ code, status, error }) => {
 		if (code === "NOT_FOUND") {
-			return status(404, { message: "Route not found" });
+			return status(404, { message: error.message });
 		}
 		return status(500, { message: error.message ?? "Internal error" });
 	})

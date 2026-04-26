@@ -1,7 +1,8 @@
-import { Elysia, t } from "elysia";
+import { Elysia, t, NotFoundError } from "elysia";
 import { jwt } from "@elysiajs/jwt";
 import { Videogame } from "../models/videogame.model.js";
 import { Rating } from "../models/rating.model.js";
+
 
 export const videogameRoutes = new Elysia({ prefix: "/videogames" })
 	.use(
@@ -274,18 +275,12 @@ export const videogameRoutes = new Elysia({ prefix: "/videogames" })
 	)
 	.get(
 		"/id/:id",
-		async ({ params, set }) => {
-			try {
-				const videogame = await Videogame.findById(params.id).lean();
-				if (!videogame) {
-					set.status = 404;
-					return { error: "Videogame not found" };
-				}
-				return { data: videogame };
-			} catch {
-				set.status = 500;
-				return { error: "Error fetching videogame" };
+		async ({ params }) => {
+			const videogame = await Videogame.findById(params.id).lean();
+			if (!videogame) {
+				throw new NotFoundError("Videogame not found");
 			}
+			return { data: videogame };
 		},
 		{
 			params: t.Object({ id: t.String() }),
