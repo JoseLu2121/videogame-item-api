@@ -1,7 +1,15 @@
 import { Elysia, t } from "elysia";
+import { jwt } from "@elysiajs/jwt";
 import { Videogame } from "../models/videogame.model.js";
+import { Rating } from "../models/rating.model.js";
 
 export const videogameRoutes = new Elysia({ prefix: "/videogames" })
+	.use(
+		jwt({
+			name: "jwt",
+			secret: Bun.env.JWT_SECRET,
+		}),
+	)
 	.get(
 		"",
 		async () => {
@@ -249,4 +257,137 @@ export const videogameRoutes = new Elysia({ prefix: "/videogames" })
 				tags: ["Videogames"],
 			},
 		},
+	)
+	.get(
+		"/id/:id",
+		async ({ params, set }) => {
+			try {
+				const videogame = await Videogame.findById(params.id).lean();
+				if (!videogame) {
+					set.status = 404;
+					return { error: "Videogame not found" };
+				}
+				return { data: videogame };
+			} catch {
+				set.status = 500;
+				return { error: "Error fetching videogame" };
+			}
+		},
+		{
+			params: t.Object({ id: t.String() }),
+			detail: {
+				summary: "Get videogame by MongoDB ID",
+				description: "Returns a videogame by its unique database ID",
+				tags: ["Videogames"],
+			},
+		}
+	)
+	.get(
+		"/rating/:id",
+		async ({ params, headers, jwt, set }) => {
+			try {
+				const authHeader = headers.authorization;
+				if (!authHeader || !authHeader.startsWith("Bearer ")) {
+					return { data: null };
+				}
+
+				const token = authHeader.split(" ")[1];
+				const profile = await jwt.verify(token);
+
+				if (!profile || !profile.id) {
+					return { data: null };
+				}
+
+				const videogame = await Videogame.findById(params.id);
+				if (!videogame) {
+					set.status = 404;
+					return { error: "Videogame not found" };
+				}
+
+				const existingRating = await Rating.findOne({
+					user: profile.id,
+					videogame: videogame._id,
+				});
+
+				return { data: existingRating || null };
+			} catch (error) {
+				set.status = 500;
+				return { error: "Error fetching user rating" };
+			}
+		},
+		{
+			params: t.Object({ id: t.String() }),
+			detail: {
+				summary: "Get user rating for a videogame",
+				description: "Returns the rating given by the authenticated user for a specific videogame, or null if not rated",
+				tags: ["Videogames"],
+			},
+		}
+	)
+	.post(
+		"/rating/:id",
+		async ({ params, body, headers, jwt, set }) => {
+			try {
+				const authHeader = headers.authorization;
+				if (!authHeader || !authHeader.startsWith("Bearer ")) {
+					set.status = 401;
+					return { error: "Unauthorized" };
+				}
+
+				const token = authHeader.split(" ")[1];
+				const profile = await jwt.verify(token);
+
+				if (!profile || !profile.id) {
+					set.status = 401;
+					return { error: "Unauthorized" };
+				}
+
+				const videogame = await Videogame.findById(params.id);
+				if (!videogame) {
+					set.status = 404;
+					return { error: "Videogame not found" };
+				}
+
+				const existingRating = await Rating.findOne({
+					user: profile.id,
+					videogame: videogame._id,
+				});
+
+				let savedRating;
+
+				if (existingRating) {
+					const difference = body.rating - existingRating.rating;
+					existingRating.rating = body.rating;
+					savedRating = await existingRating.save();
+
+					videogame.rating = (videogame.rating || 0) + difference;
+					await videogame.save();
+				} else {
+					const newRating = new Rating({
+						user: profile.id,
+						videogame: videogame._id,
+						rating: body.rating,
+					});
+					savedRating = await newRating.save();
+
+					videogame.rating = (videogame.rating || 0) + body.rating;
+					videogame.rating_count = (videogame.rating_count || 0) + 1;
+					await videogame.save();
+				}
+
+				return { message: "Rating added/updated successfully", data: savedRating };
+			} catch (error) {
+				set.status = 500;
+				return { error: "Error adding rating" };
+			}
+		},
+		{
+			params: t.Object({ id: t.String() }),
+			body: t.Object({ rating: t.Numeric({ minimum: 1, maximum: 5 }) }),
+			detail: {
+				summary: "Rate a videogame",
+				description: "Allows an authenticated user to rate a videogame",
+				tags: ["Videogames"],
+			},
+		}
 	);
