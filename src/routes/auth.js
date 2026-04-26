@@ -1,6 +1,7 @@
 import { jwt } from "@elysiajs/jwt";
 import { Elysia, t } from "elysia";
-import { User } from "../models/user.model";
+import { User } from "../models/user.model.js";
+import { Rating } from "../models/rating.model.js";
 
 export const authRoutes = new Elysia({ prefix: "/auth" })
 	.use(
@@ -25,7 +26,7 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 	)
 	.post(
 		"/register",
-		async ({ body, set }) => {
+		async ({ body, jwt, set }) => {
 			const { email, password } = body;
 
 			const userExists = await User.findOne({ email });
@@ -37,7 +38,9 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 			const hashedPassword = await Bun.password.hash(password);
 			const newUser = await User.create({ email, password: hashedPassword });
 
-			return { message: "User created", id: newUser._id };
+			const token = await jwt.sign({ id: newUser._id.toString() });
+
+			return { message: "User created", id: newUser._id, token };
 		},
 		{
 			body: t.Object(
@@ -71,7 +74,7 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 				return { error: "Invalid credentials" };
 			}
 
-			const token = await jwt.sign({ id: user._id });
+			const token = await jwt.sign({ id: user._id.toString() });
 			return { message: "Login successful", token };
 		},
 		{
@@ -91,4 +94,46 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 				tags: ["Auth"],
 			},
 		},
+	)
+	.get(
+		"/profile",
+		async ({ headers, jwt, set }) => {
+			try {
+				const authHeader = headers.authorization;
+				if (!authHeader || !authHeader.startsWith("Bearer ")) {
+					set.status = 401;
+					return { error: "Unauthorized" };
+				}
+
+				const token = authHeader.split(" ")[1];
+				const decoded = await jwt.verify(token);
+
+				if (!decoded || !decoded.id) {
+					set.status = 401;
+					return { error: "Unauthorized" };
+				}
+
+				const user = await User.findById(decoded.id).select("-password").lean();
+				if (!user) {
+					set.status = 404;
+					return { error: "User not found" };
+				}
+
+				const ratings = await Rating.find({ user: decoded.id })
+					.populate("videogame")
+					.lean();
+
+				return { user, ratings };
+			} catch (error) {
+				set.status = 500;
+				return { error: "Error fetching profile data" };
+			}
+		},
+		{
+			detail: {
+				summary: "Get user profile and ratings",
+				description: "Returns the authenticated user's details and all their rated videogames",
+				tags: ["Auth"],
+			},
+		}
 	);
