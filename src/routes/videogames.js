@@ -197,10 +197,10 @@ export const videogameRoutes = new Elysia({ prefix: "/videogames" })
 			try {
 				const limit = query.limit ?? 10;
 				const videogames = await Videogame.find({
-					first_release_date: { $exists: true },
+					first_release_date: { $exists: true, $lte: new Date() },
 				})
 					.sort({ first_release_date: -1 })
-					.limit(limit);
+					.limit(limit)
 
 				return { count: videogames.length, data: videogames };
 			} catch {
