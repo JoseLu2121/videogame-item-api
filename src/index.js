@@ -1,3 +1,4 @@
+import { openapi } from "@elysia/openapi";
 import { cors } from "@elysiajs/cors";
 import { Elysia } from "elysia";
 import mongoose from "mongoose";
@@ -6,7 +7,6 @@ import { charactersRoutes } from "./routes/characters.js";
 import { itemsRoutes } from "./routes/items.js";
 import { seedRoutes } from "./routes/seed.js";
 import { videogameRoutes } from "./routes/videogames.js";
-import { openapi } from '@elysia/openapi'
 
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/api";
 
@@ -17,35 +17,36 @@ mongoose
 
 const app = new Elysia()
 	.use(cors())
-	.use(openapi({
-		documentation: {
-			info: {
-				title: "BlitzDrop API",
-				version: "1.0.0",
+	.use(
+		openapi({
+			documentation: {
+				info: {
+					title: "BlitzDrop API",
+					version: "1.0.0",
+				},
+				tags: [
+					{ name: "General", description: "General routes" },
+					{ name: "Auth", description: "Authentication routes" },
+					{ name: "Characters", description: "Character routes" },
+					{ name: "Videogames", description: "Videogame routes" },
+					{ name: "Items", description: "Items routes" },
+					{ name: "Seeder", description: "Seeding routes" },
+				],
 			},
-			tags: [
-				{ name: "General", description: "General routes"},
-				{ name: "Auth", description: "Authentication routes" },
-				{ name: "Characters", description: "Character routes" },
-				{ name: "Videogames", description: "Videogame routes" },
-				{ name: "Items", description: "Items routes" },
-				{ name: "Seeder", description: "Seeding routes" }
-			]
-		}
-	}))
+		}),
+	)
 	.onError(({ code, status, error }) => {
 		if (code === "NOT_FOUND") {
 			return status(404, { message: "Route not found" });
 		}
 		return status(500, { message: error.message ?? "Internal error" });
 	})
-	.get("/", () => "BlitzDrop API working!",
-		{
-			detail: {
-				summary: "Health check",
-				tags: ["General"],
-			},
-		})
+	.get("/", () => "BlitzDrop API working!", {
+		detail: {
+			summary: "Health check",
+			tags: ["General"],
+		},
+	})
 	.use(authRoutes)
 	.use(itemsRoutes)
 	.use(charactersRoutes)

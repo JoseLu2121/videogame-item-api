@@ -30,7 +30,9 @@ export class EldenRingCharactersSeeder {
 					name: npc.name,
 					title: npc.role || "NPC",
 					image_url: npc.image || null,
-					tags: (npc.location ? [npc.location] : []).map(location => location.toLowerCase()),
+					tags: (npc.location ? [npc.location] : []).map((location) =>
+						location.toLowerCase(),
+					),
 				}));
 
 				await Character.insertMany(docs);

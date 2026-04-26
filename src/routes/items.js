@@ -4,37 +4,43 @@ import { db } from "../db/mongo.js";
 const itemsCollection = db.collection("items");
 
 export const itemsRoutes = new Elysia({ prefix: "/items" })
-	.get("", async () => {
-		try {
-			const items = await itemsCollection.find().toArray();
-			return { data: items };
-		} catch {
-			throw new Error("Error fetching items");
-		}
-	},
+	.get(
+		"",
+		async () => {
+			try {
+				const items = await itemsCollection.find().toArray();
+				return { data: items };
+			} catch {
+				throw new Error("Error fetching items");
+			}
+		},
 		{
 			detail: {
 				summary: "Get all items",
 				description: "Returns all items",
 				tags: ["Items"],
-			}
-		})
-	.get("/games", async () => {
-		try {
-			const games = await itemsCollection.distinct("game");
+			},
+		},
+	)
+	.get(
+		"/games",
+		async () => {
+			try {
+				const games = await itemsCollection.distinct("game");
 
-			return { data: games };
-		} catch {
-			throw new Error("Error fetching available games");
-		}
-	},
+				return { data: games };
+			} catch {
+				throw new Error("Error fetching available games");
+			}
+		},
 		{
 			detail: {
 				summary: "Get item games",
 				description: "Returns games from all items",
 				tags: ["Items"],
-			}
-		})
+			},
+		},
+	)
 	.get(
 		"/game/:game",
 		async ({ params }) => {
@@ -48,14 +54,17 @@ export const itemsRoutes = new Elysia({ prefix: "/items" })
 			}
 		},
 		{
-			params: t.Object({
-				game: t.String(),
-			}, { description: "Expects a game"}),
+			params: t.Object(
+				{
+					game: t.String(),
+				},
+				{ description: "Expects a game" },
+			),
 			detail: {
 				summary: "Get game items",
 				description: "Returns items from a game",
-				tags: ["Items"]
-			}
+				tags: ["Items"],
+			},
 		},
 	)
 	.get(
@@ -71,14 +80,17 @@ export const itemsRoutes = new Elysia({ prefix: "/items" })
 			}
 		},
 		{
-			params: t.Object({
-				name: t.String(),
-			}, { description: "Expects a name" }),
+			params: t.Object(
+				{
+					name: t.String(),
+				},
+				{ description: "Expects a name" },
+			),
 			detail: {
 				summary: "Get item by name",
 				description: "Returns an item by name",
-				tags: ["Items"]
-			}
+				tags: ["Items"],
+			},
 		},
 	)
 	.get(
@@ -97,14 +109,17 @@ export const itemsRoutes = new Elysia({ prefix: "/items" })
 			}
 		},
 		{
-			params: t.Object({
-				name: t.String(),
-				game: t.String(),
-			}, { description: "Expects a game and name" }),
+			params: t.Object(
+				{
+					name: t.String(),
+					game: t.String(),
+				},
+				{ description: "Expects a game and name" },
+			),
 			detail: {
 				summary: "Get item by game and name",
 				description: "Returns an item by game and name",
-				tags: ["Items"]
-			}
+				tags: ["Items"],
+			},
 		},
 	);

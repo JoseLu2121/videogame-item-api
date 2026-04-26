@@ -6,7 +6,8 @@
 		"start": "bun run src/index.js",
 		"dev": "bun --watch run src/index.js",
 		"seed": "bun run src/run.seeders.js",
-		"docker:dev": "bun run seed && bun run dev"
+		"docker:dev": "bun run seed && bun run dev",
+		"lint:fix": "biome check --write ."
 	},
 	"dependencies": {
 		"@elysia/openapi": "^1.4.15",

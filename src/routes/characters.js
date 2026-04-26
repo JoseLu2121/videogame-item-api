@@ -2,49 +2,59 @@ import { Elysia, t } from "elysia";
 import { Character } from "../models/character.model.js";
 
 export const charactersRoutes = new Elysia({ prefix: "/characters" })
-	.get("", async () => {
-		try {
-			const characters = await Character.find({});
-			return {
-				count: characters.length,
-				data: characters,
-			};
-		} catch {
-			throw new Error("Error fetching characters");
-		}
-	}, {
-		detail: {
-			summary: "Get all characters",
-			description: "Returns all characters",
-			tags: ["Characters"],
-		}
-	})
-	.get("/games", async () => {
-		try {
-			const games = await Character.distinct("game");
+	.get(
+		"",
+		async () => {
+			try {
+				const characters = await Character.find({});
+				return {
+					count: characters.length,
+					data: characters,
+				};
+			} catch {
+				throw new Error("Error fetching characters");
+			}
+		},
+		{
+			detail: {
+				summary: "Get all characters",
+				description: "Returns all characters",
+				tags: ["Characters"],
+			},
+		},
+	)
+	.get(
+		"/games",
+		async () => {
+			try {
+				const games = await Character.distinct("game");
 
-			return {
-				count: games.length,
-				data: games,
-			};
-		} catch {
-			throw new Error("Error fetching character games");
-		}
-	}, {
-		detail: {
-			summary: "Get character games",
-			description: "Returns games from all characters",
-			tags: ["Characters"],
-		}
-	})
+				return {
+					count: games.length,
+					data: games,
+				};
+			} catch {
+				throw new Error("Error fetching character games");
+			}
+		},
+		{
+			detail: {
+				summary: "Get character games",
+				description: "Returns games from all characters",
+				tags: ["Characters"],
+			},
+		},
+	)
 	.get(
 		"/game/:game",
 		async ({ params, query }) => {
 			try {
 				const filter = { game: { $regex: params.game, $options: "i" } };
-                if (query.tags) {
-                    filter.tags = { $all: query.tags.split(",").map(tag => tag.toLowerCase()) };
-                }
+				if (query.tags) {
+					filter.tags = {
+						$all: query.tags.split(",").map((tag) => tag.toLowerCase()),
+					};
+				}
 
 				const characters = await Character.find(filter);
 
@@ -57,24 +67,33 @@ export const charactersRoutes = new Elysia({ prefix: "/characters" })
 			}
 		},
 		{
-			params: t.Object({
-				game: t.String(),
-			}, { description: "Expects a game"}),
-			query: t.Object({
-				tags: t.Optional(t.String()),
-			}, { description: "Optionally, character tags can be added to the query"}),
+			params: t.Object(
+				{
+					game: t.String(),
+				},
+				{ description: "Expects a game" },
+			),
+			query: t.Object(
+				{
+					tags: t.Optional(t.String()),
+				},
+				{ description: "Optionally, character tags can be added to the query" },
+			),
 			detail: {
 				summary: "Get game characters",
-				description: "Returns characters from a game. Additionally, fetched characters can be filtered by tags",
-				tags: ["Characters"]
-			}
+				description:
+					"Returns characters from a game. Additionally, fetched characters can be filtered by tags",
+				tags: ["Characters"],
+			},
 		},
 	)
 	.get(
 		"/name/:name",
 		async ({ params }) => {
 			try {
-				const characters = await Character.find({ name: { $regex: params.name, $options: "i" } });
+				const characters = await Character.find({
+					name: { $regex: params.name, $options: "i" },
+				});
 				return {
 					count: characters.length,
 					data: characters,
@@ -84,24 +103,30 @@ export const charactersRoutes = new Elysia({ prefix: "/characters" })
 			}
 		},
 		{
-			params: t.Object({
-				name: t.String(),
-			}, { description: "Expects a character name"}),
+			params: t.Object(
+				{
+					name: t.String(),
+				},
+				{ description: "Expects a character name" },
+			),
 			detail: {
 				summary: "Get character by name",
 				description: "Returns a character by name",
-				tags: ["Characters"]
-			}
+				tags: ["Characters"],
+			},
 		},
 	)
 	.get(
 		"/game/:game/name/:name",
 		async ({ params }) => {
 			try {
-				const characters = await Character.find({
-					game: { $regex: params.game, $options: "i" },
-					name: { $regex: params.name, $options: "i" },
-				}, { description: "Expects a character game and name"});
+				const characters = await Character.find(
+					{
+						game: { $regex: params.game, $options: "i" },
+						name: { $regex: params.name, $options: "i" },
+					},
+					{ description: "Expects a character game and name" },
+				);
 				return {
 					count: characters.length,
 					data: characters,
@@ -118,8 +143,8 @@ export const charactersRoutes = new Elysia({ prefix: "/characters" })
 			detail: {
 				summary: "Get character by name and game",
 				description: "Returns a character by name and game",
-				tags: ["Characters"]
-			}
+				tags: ["Characters"],
+			},
 		},
 	)
 	.get(
@@ -142,13 +167,16 @@ export const charactersRoutes = new Elysia({ prefix: "/characters" })
 			}
 		},
 		{
-			params: t.Object({
-				game: t.String(),
-			}, { description: "Expects a game"}),
+			params: t.Object(
+				{
+					game: t.String(),
+				},
+				{ description: "Expects a game" },
+			),
 			detail: {
 				summary: "Get tags from a game",
 				description: "Returns tags from a game",
-				tags: ["Characters"]
-			}
+				tags: ["Characters"],
+			},
 		},
 	);

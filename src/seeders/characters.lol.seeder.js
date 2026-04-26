@@ -20,7 +20,7 @@ export class LolCharactersSeeder {
 				name: champ.name,
 				title: champ.title,
 				image_url: `https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/${champ.image.full}`,
-				tags: champ.tags.map(tag => tag.toLowerCase()),
+				tags: champ.tags.map((tag) => tag.toLowerCase()),
 			}));
 
 			await Character.insertMany(docs);

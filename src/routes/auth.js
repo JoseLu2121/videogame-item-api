@@ -9,15 +9,20 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 			secret: Bun.env.JWT_SECRET,
 		}),
 	)
-	.get("", () => {
-		return { message: "Auth working correctly" };
-	}, {
-		detail: {
-			summary: "Health check",
-			description: "Returns a message if the auth routes are working correctly",
-			tags: ["Auth"],
-		}
-	})
+	.get(
+		"",
+		() => {
+			return { message: "Auth working correctly" };
+		},
+		{
+			detail: {
+				summary: "Health check",
+				description:
+					"Returns a message if the auth routes are working correctly",
+				tags: ["Auth"],
+			},
+		},
+	)
 	.post(
 		"/register",
 		async ({ body, set }) => {
@@ -35,16 +40,19 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 			return { message: "User created", id: newUser._id };
 		},
 		{
-			body: t.Object({
-				email: t.String({ description: "Desired user email" }),
-				password: t.String({ description: "Desired user password" }),
-			}, { description: "Expects a user email and password" }),
+			body: t.Object(
+				{
+					email: t.String({ description: "Desired user email" }),
+					password: t.String({ description: "Desired user password" }),
+				},
+				{ description: "Expects a user email and password" },
+			),
 			detail: {
 				summary: "Register",
 				description: "Registers a new user",
 				tags: ["Auth"],
 			},
-		}
+		},
 	)
 	.post(
 		"/login",
@@ -67,14 +75,20 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
 			return { message: "Login successful", token };
 		},
 		{
-			body: t.Object({
-				email: t.String({ description: "User email" }),
-				password: t.String({ description: "User password" }),
-			}, { description: "Expects a previously registered user email and password" }),
+			body: t.Object(
+				{
+					email: t.String({ description: "User email" }),
+					password: t.String({ description: "User password" }),
+				},
+				{
+					description:
+						"Expects a previously registered user email and password",
+				},
+			),
 			detail: {
 				summary: "Login",
 				description: "Logins a user",
 				tags: ["Auth"],
 			},
-		}
+		},
 	);
