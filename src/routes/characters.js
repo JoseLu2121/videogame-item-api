@@ -118,31 +118,34 @@ export const charactersRoutes = new Elysia({ prefix: "/characters" })
 	)
 	.get(
 		"/game/:game/name/:name",
-		async ({ params }) => {
+		async ({ params, query }) => {
 			try {
-				const characters = await Character.find(
-					{
-						game: { $regex: params.game, $options: "i" },
-						name: { $regex: params.name, $options: "i" },
-					},
-					{ description: "Expects a character game and name" },
-				);
-				return {
-					count: characters.length,
-					data: characters,
+				const filter = {
+					game: { $regex: params.game, $options: "i" },
+					name: { $regex: params.name, $options: "i" },
 				};
+
+				if (query.tags) {
+					filter.tags = { $all: query.tags.split(",").map((tag) => tag.toLowerCase()) };
+				}
+
+				const characters = await Character.find(filter).lean();
+				return { count: characters.length, data: characters };
 			} catch {
 				throw new Error("Error fetching characters from game and name");
 			}
 		},
 		{
 			params: t.Object({
-				name: t.String(),
 				game: t.String(),
-			}),
+				name: t.String(),
+			}, { description: "Expects a game and a name" }),
+			query: t.Object({
+				tags: t.Optional(t.String()),
+			}, { description: "Optionally, character tags can be added to the query" }),
 			detail: {
-				summary: "Get character by name and game",
-				description: "Returns a character by name and game",
+				summary: "Get character by game and name",
+				description: "Returns a character by game and name",
 				tags: ["Characters"],
 			},
 		},
